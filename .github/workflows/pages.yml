@@ -26,7 +26,7 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir -p _site/content
-          cp index.html app.js styles.css site-extra.css admin.html admin.js automation-core.js admin.css admin-gate.css admin-categories.css admin-automation.css _site/
+          cp index.html app.js styles.css site-extra.css responsive-motion.css responsive-motion.js admin.html admin.js automation-core.js admin.css admin-gate.css admin-categories.css admin-automation.css _site/
           cp -R content/. _site/content/
           if [ -d assets ]; then cp -R assets _site/assets; fi
           touch _site/.nojekyll

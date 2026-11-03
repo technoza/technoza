@@ -14,8 +14,10 @@
   <link rel="stylesheet" href="admin-gate.css">
   <link rel="stylesheet" href="admin-categories.css">
   <link rel="stylesheet" href="admin-automation.css">
+  <link rel="stylesheet" href="responsive-motion.css">
 </head>
 <body class="admin-body">
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
   <main class="admin-gate" id="admin-gate">
     <section class="gate-card"><a class="wordmark gate-mark" href="./">margin<span>.</span></a><div class="gate-kicker"><span>✳</span> THE EDITOR'S DESK</div><h1>Your journal,<br><em>your key.</em></h1><p class="gate-intro">Sign in with a GitHub token for <strong>@technoza</strong> to open the private writing dashboard.</p><form id="owner-auth-form"><label for="owner-auth-token">FINE-GRAINED GITHUB TOKEN</label><div class="gate-token-row"><input type="password" id="owner-auth-token" placeholder="github_pat_…" autocomplete="off" required><button type="button" id="toggle-auth-token">SHOW</button></div><button class="gate-submit" id="owner-auth-submit" type="submit">Verify GitHub account <span>↗</span></button><p class="gate-feedback" id="owner-auth-feedback" role="status"></p></form><div class="gate-note">Use a fine-grained token limited to this repository with Contents read and write. It stays in this browser.</div><a class="gate-return" href="./">← Back to the public journal</a></section><div class="gate-side"><div class="gate-orbit gate-orbit-one"></div><div class="gate-orbit gate-orbit-two"></div><div class="gate-side-copy"><span>01 / AN OPEN PAGE</span><p>Stories for<br>the curious.</p><span class="gate-side-star">✳</span></div></div>
   </main>
@@ -77,6 +79,7 @@
   <div class="toast" id="dash-toast" role="status" aria-live="polite"></div>
   <div class="preview-modal" id="preview-modal" aria-hidden="true"><div class="preview-scrim" data-close-preview></div><section class="preview-sheet" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button class="preview-close" type="button" aria-label="Close preview" data-close-preview>×</button><span class="preview-label">STORY PREVIEW</span><div class="preview-category" id="preview-category"></div><h2 id="preview-title"></h2><p class="preview-excerpt" id="preview-excerpt"></p><div class="preview-byline" id="preview-byline"></div><img id="preview-image" alt=""><div class="preview-body" id="preview-body"></div><div class="preview-ending">✳</div></section></div>
   </div>
+  <script src="responsive-motion.js"></script>
   <script src="automation-core.js"></script>
   <script src="admin.js"></script>
 </body>
