@@ -16,13 +16,15 @@ Create a [fine-grained personal access token](https://github.com/settings/person
 ## Write and publish
 
 - In the dashboard, add a title, short intro, category, byline, date, story text, and a JPG, PNG, or WebP cover image (up to 8 MB).
+- Create or remove categories in **Categories**. Categories are saved to `content/categories.json`; categories used by a story cannot be removed until that story is reassigned or removed.
 - Preview the story, save an optional draft in this browser, then publish. The dashboard commits image files under `assets/blog/` and updates `content/posts.json`.
 - New stories appear on the public site after GitHub Pages finishes updating. The dashboard lists, edits, and removes published stories.
 
 ## Notes
 
-- The four starter stories in `content/posts.json` are sample editorial content. Replace or remove them from the dashboard whenever you’re ready.
+- The 24 starter stories in `content/posts.json` are sample editorial content. Replace or remove them from the dashboard whenever you’re ready.
 - Story text and image descriptions are stored in `content/posts.json`; uploaded cover files live in `assets/blog/`.
+- The dashboard checks that its fine-grained GitHub token belongs to `technoza`; the public journal does not expose a dashboard link.
 - Browser drafts and connection settings are device-specific. A saved GitHub token is not shared between browsers or devices.
 - The dashboard page is reachable by URL, but its writing interface is gated by an authenticated GitHub account check. The blog homepage does not expose a dashboard link.
 - GitHub Pages requires its source to be set to **GitHub Actions** once in repository settings. This setting cannot be changed by a repository commit alone.

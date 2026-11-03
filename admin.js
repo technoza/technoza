@@ -2,6 +2,7 @@
   const CONFIG_KEY = 'margin-github-connection';
   const DRAFT_KEY = 'margin-writing-draft';
   const FILE_PATH = 'content/posts.json';
+  const CATEGORY_PATH = 'content/categories.json';
   const AUTH_USER = 'technoza';
   const views = [...document.querySelectorAll('.dash-view')];
   const form = document.getElementById('post-form');
@@ -9,6 +10,7 @@
   const toast = document.getElementById('dash-toast');
   let config = readConfig();
   let posts = [];
+  let categories = [];
   let editingId = null;
   let existingImage = '';
   let toastTimer;
@@ -109,9 +111,22 @@
     if (!Array.isArray(parsed)) throw new Error('content/posts.json should contain a list of stories.');
     return parsed;
   }
+  async function readGithubCategories() {
+    const result = await githubRequest(repoPath(CATEGORY_PATH, `?ref=${encodeURIComponent(config.branch || 'main')}`));
+    if (!result.content) throw new Error('The repository returned an empty categories file.');
+    const parsed = JSON.parse(decodeBase64(result.content));
+    if (!Array.isArray(parsed)) throw new Error('content/categories.json should contain a list of category names.');
+    return [...new Set(parsed.map(item => String(item).trim()).filter(Boolean))];
+  }
   async function readLocalPosts() {
     try {
       const response = await fetch(`content/posts.json?v=${Date.now()}`, { cache: 'no-store' });
+      return response.ok ? await response.json() : [];
+    } catch { return []; }
+  }
+  async function readLocalCategories() {
+    try {
+      const response = await fetch(`content/categories.json?v=${Date.now()}`, { cache: 'no-store' });
       return response.ok ? await response.json() : [];
     } catch { return []; }
   }
@@ -144,10 +159,19 @@
       setConnectionUI(true);
       try {
         posts = await readGithubPosts();
+        try { categories = await readGithubCategories(); }
+        catch { categories = await readLocalCategories(); }
+        categories = [...new Set([...categories, ...posts.map(post => post.category).filter(Boolean)])];
+        renderCategoryOptions();
+        renderManagedCategories();
         renderPosts();
         goTo('overview');
       } catch (error) {
         posts = await readLocalPosts();
+        categories = await readLocalCategories();
+        categories = [...new Set([...categories, ...posts.map(post => post.category).filter(Boolean)])];
+        renderCategoryOptions();
+        renderManagedCategories();
         renderPosts();
         document.getElementById('overview-banner').classList.remove('connected');
         document.querySelector('#overview-banner .banner-copy strong').textContent = 'GitHub needs a quick check';
@@ -209,6 +233,70 @@
     host.innerHTML = posts.map(post => `<article class="published-row"><img class="published-thumb" src="${escape(post.image || '')}" alt=""><div class="published-info"><h3>${escape(post.title)}</h3><p>${escape(post.category || 'Journal')} &nbsp; · &nbsp; ${escape(formatDate(post.date))} &nbsp; · &nbsp; By ${escape(post.author || 'Margin Editors')}</p></div><div class="published-actions"><button type="button" class="row-action" data-edit="${escape(post.id)}">Edit</button><button type="button" class="row-action delete" data-delete="${escape(post.id)}">Remove</button></div></article>`).join('');
     host.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => editPost(button.dataset.edit)));
     host.querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deletePost(button.dataset.delete)));
+  }
+
+  function renderCategoryOptions() {
+    const select = document.getElementById('post-category');
+    const current = select.value;
+    select.innerHTML = `<option value="" disabled>Choose a category</option>${categories.map(category => `<option value="${escape(category)}">${escape(category)}</option>`).join('')}`;
+    select.value = categories.includes(current) ? current : '';
+  }
+  function renderManagedCategories() {
+    const host = document.getElementById('managed-category-list');
+    if (!host) return;
+    document.getElementById('category-count').textContent = `${categories.length} ${categories.length === 1 ? 'CATEGORY' : 'CATEGORIES'}`;
+    if (!categories.length) {
+      host.innerHTML = '<div class="list-loading">Add your first category to organize the journal.</div>';
+      return;
+    }
+    host.innerHTML = categories.map(category => {
+      const usage = posts.filter(post => post.category === category).length;
+      return `<div class="managed-category-row"><span class="managed-category-name">${escape(category)}</span><span class="managed-category-usage">${usage} ${usage === 1 ? 'story' : 'stories'}</span><button type="button" class="category-remove-button" data-remove-category="${escape(category)}" ${usage ? 'disabled title="Move or remove stories in this category first"' : ''}>${usage ? 'In use' : 'Remove'}</button></div>`;
+    }).join('');
+    host.querySelectorAll('[data-remove-category]:not(:disabled)').forEach(button => button.addEventListener('click', () => removeCategory(button.dataset.removeCategory)));
+  }
+  function setCategoryFeedback(message, kind = '') {
+    const element = document.getElementById('category-feedback');
+    element.textContent = message;
+    element.className = `category-manager-note ${kind}`.trim();
+  }
+  document.getElementById('category-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const input = document.getElementById('new-category');
+    const name = input.value.trim();
+    if (!name) return;
+    if (categories.some(category => category.toLowerCase() === name.toLowerCase())) {
+      setCategoryFeedback('That category is already in your journal.', 'error');
+      return;
+    }
+    const button = document.getElementById('add-category-button');
+    button.disabled = true;
+    setCategoryFeedback('Saving your category to GitHub…');
+    try {
+      const updated = [...categories, name];
+      await writeGithubFile(CATEGORY_PATH, `${JSON.stringify(updated, null, 2)}\n`, `Add category: ${name}`);
+      categories = updated;
+      input.value = '';
+      renderCategoryOptions();
+      renderManagedCategories();
+      setCategoryFeedback(`“${name}” is ready for a new story.`, 'success');
+    } catch (error) { setCategoryFeedback(error.message, 'error'); }
+    finally { button.disabled = false; }
+  });
+  async function removeCategory(name) {
+    if (posts.some(post => post.category === name)) {
+      setCategoryFeedback('This category is in use. Move or remove those stories before removing it.', 'error');
+      return;
+    }
+    if (!window.confirm(`Remove the “${name}” category?`)) return;
+    try {
+      const updated = categories.filter(category => category !== name);
+      await writeGithubFile(CATEGORY_PATH, `${JSON.stringify(updated, null, 2)}\n`, `Remove category: ${name}`);
+      categories = updated;
+      renderCategoryOptions();
+      renderManagedCategories();
+      setCategoryFeedback(`“${name}” was removed.`, 'success');
+    } catch (error) { setCategoryFeedback(error.message, 'error'); }
   }
 
   function clearComposer() {
@@ -442,6 +530,11 @@
         if (String(error.message).includes('not found')) throw new Error('Repository connected, but content/posts.json is missing. Add the website files to this repository and try again.');
         throw error;
       }
+      try { categories = await readGithubCategories(); }
+      catch { categories = await readLocalCategories(); }
+      categories = [...new Set([...categories, ...posts.map(post => post.category).filter(Boolean)])];
+      renderCategoryOptions();
+      renderManagedCategories();
       renderPosts();
       populateConnectionFields();
       setConnectionUI(true);
@@ -481,7 +574,7 @@
   document.getElementById('owner-auth-form').addEventListener('submit', async event => {
     event.preventDefault();
     const tokenInput = document.getElementById('owner-auth-token');
-    const token = tokenInput.value.trim();
+    const token = tokenInput.value.trim() || config?.token || '';
     const submit = document.getElementById('owner-auth-submit');
     const feedback = document.getElementById('owner-auth-feedback');
     submit.disabled = true;
@@ -489,8 +582,9 @@
     feedback.textContent = '';
     feedback.className = 'gate-feedback';
     try {
+      if (!token) throw new Error('For first use on this device, add a fine-grained GitHub token with Contents read and write.');
       await verifyOwner(token);
-      config = { owner: AUTH_USER, repo: AUTH_USER, branch: 'main', token };
+      config = { ...(config || {}), owner: AUTH_USER, repo: config?.repo || AUTH_USER, branch: config?.branch || 'main', token };
       localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
       tokenInput.value = '';
       showShell();
@@ -506,16 +600,5 @@
     }
   });
 
-  (async () => {
-    if (!config?.token) { showGate(); return; }
-    try {
-      await verifyOwner(config.token);
-      showShell();
-      await loadDashboard();
-    } catch {
-      localStorage.removeItem(CONFIG_KEY);
-      config = null;
-      showGate();
-    }
-  })();
+  showGate();
 })();
