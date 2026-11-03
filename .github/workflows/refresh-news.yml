@@ -1,0 +1,45 @@
+name: Refresh daily news brief
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the journal
+        uses: actions/checkout@v4
+      - name: Fetch India headlines from GNews
+        env:
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+        run: python3 scripts/fetch-news.py
+      - name: Assemble the site with refreshed headlines
+        run: |
+          mkdir -p _site/content
+          cp index.html app.js styles.css site-extra.css admin.html admin.js admin.css admin-gate.css admin-categories.css _site/
+          cp -R content/. _site/content/
+          if [ -d assets ]; then cp -R assets _site/assets; fi
+          touch _site/.nojekyll
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

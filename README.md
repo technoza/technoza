@@ -20,6 +20,13 @@ Create a [fine-grained personal access token](https://github.com/settings/person
 - Preview the story, save an optional draft in this browser, then publish. The dashboard commits image files under `assets/blog/` and updates `content/posts.json`.
 - New stories appear on the public site after GitHub Pages finishes updating. The dashboard lists, edits, and removes published stories.
 
+## Daily news brief
+
+- Add a repository Actions secret named `GNEWS_API_KEY` with your GNews API key. Keep it in **Settings → Secrets and variables → Actions**; do not paste it into site code.
+- The `Refresh daily news brief` workflow fetches up to 10 English-language India headlines each day at 09:30 India time and publishes them with the site.
+- Use **Actions → Refresh daily news brief → Run workflow** to fetch it immediately after setting the secret. GNews availability and article limits depend on your subscription.
+- The public brief links readers to each original publisher and credits GNews. It does not copy full articles.
+
 ## Notes
 
 - The 24 starter stories in `content/posts.json` are sample editorial content. Replace or remove them from the dashboard whenever you’re ready.

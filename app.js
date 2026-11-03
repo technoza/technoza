@@ -46,6 +46,7 @@
     }
     renderCategories();
     renderCards();
+    loadNews();
     document.getElementById('year').textContent = new Date().getFullYear();
     watchReveals();
   }
@@ -71,6 +72,53 @@
       <div class="card-body"><div class="card-meta"><span>${escape(formatDate(post.date))}</span><span class="meta-dot"></span><span>${readingTime(post)} min read</span></div><h3 class="card-title"><a href="?post=${encodeURIComponent(post.id)}">${escape(post.title)}</a></h3><p class="card-excerpt">${escape(post.excerpt || '')}</p><div class="card-footer"><span>By ${escape(post.author || 'Margin Editors')}</span><a href="?post=${encodeURIComponent(post.id)}">Read story&nbsp; ↗</a></div></div>
     </article>`).join('');
     document.getElementById('empty-state').hidden = posts.length > 0;
+  }
+
+  const safeNewsUrl = value => {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' ? url.href : '';
+    } catch { return ''; }
+  };
+  const formatNewsDate = value => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(date);
+  };
+
+  async function loadNews() {
+    const host = document.getElementById('news-grid');
+    const updated = document.getElementById('news-updated');
+    if (!host || !updated) return;
+    try {
+      const response = await fetch(`content/news.json?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Unable to read the news file');
+      const data = await response.json();
+      const articles = Array.isArray(data.articles) ? data.articles.slice(0, 10) : [];
+      updated.textContent = data.updatedAt ? `Updated ${formatNewsDate(data.updatedAt)} IST` : 'Updated daily';
+      if (!articles.length) {
+        host.innerHTML = '<article class="news-loading"><span class="news-pulse" aria-hidden="true"></span><p>Today’s brief is being prepared. Check back soon.</p></article>';
+        return;
+      }
+      host.innerHTML = articles.map((article, index) => {
+        const link = safeNewsUrl(article.url);
+        const image = safeNewsUrl(article.image);
+        const source = escape(article.source || 'Original publisher');
+        const published = formatNewsDate(article.publishedAt);
+        return `<article class="news-card reveal" style="--card-index:${index}">
+          ${image && link ? `<a class="news-image" href="${link}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true"><img loading="lazy" src="${image}" alt=""></a>` : '<div class="news-image news-image-empty" aria-hidden="true"><span>✳</span></div>'}
+          <div class="news-card-body"><div class="news-card-meta"><span>${source}</span>${published ? `<span>${escape(published)}</span>` : ''}</div>
+          <h3>${link ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${escape(article.title || 'Read the latest story')} <span aria-hidden="true">↗</span></a>` : escape(article.title || 'Latest story')}</h3>
+          ${article.description ? `<p>${escape(article.description)}</p>` : ''}
+          ${link ? `<a class="news-read-link" href="${link}" target="_blank" rel="noopener noreferrer">Read at ${source} <span aria-hidden="true">↗</span></a>` : ''}</div>
+        </article>`;
+      }).join('');
+      watchReveals();
+    } catch (error) {
+      console.warn('Could not load today’s news brief.', error);
+      updated.textContent = 'Daily news brief';
+      host.innerHTML = '<article class="news-loading"><span>✳</span><p>The latest brief will appear here once it is ready.</p></article>';
+    }
   }
 
   function renderArticle(post) {
