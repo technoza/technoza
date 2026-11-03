@@ -26,6 +26,8 @@ Create a [fine-grained personal access token](https://github.com/settings/person
 - The `Refresh daily news brief` workflow fetches up to 10 English-language India headlines each day at 09:30 India time and publishes them with the site.
 - Use **Actions → Refresh daily news brief → Run workflow** to fetch it immediately after setting the secret. GNews availability and article limits depend on your subscription.
 - The public brief links readers to each original publisher and credits GNews. It does not copy full articles.
+- In the dashboard, **Daily automation** prepares one private starter draft from that day's top headline when you open the dashboard. You can also choose another headline. Drafts are saved only in this browser; nothing is published automatically.
+- Review the source, edit the starter, upload your cover image, and press **Publish to GitHub** when you approve it. The published story keeps a link to its reporting source.
 
 ## Notes
 

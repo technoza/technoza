@@ -132,10 +132,12 @@
     article.className = 'article-view';
     const previous = state.posts[state.posts.indexOf(post) + 1];
     const next = state.posts[state.posts.indexOf(post) - 1];
+    const sourceUrl = safeNewsUrl(post.sourceUrl);
+    const sourceAttribution = sourceUrl ? `<aside class="article-source"><span>Reporting source</span><a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">${escape(post.sourceName || 'Original publisher')} ↗</a></aside>` : '';
     article.innerHTML = `<a class="article-back" href="./#stories"><span>←</span> Back to the journal</a>
       <header class="article-header"><div class="eyebrow"><span class="eyebrow-line"></span>${escape(post.category || 'The Journal')}<span class="eyebrow-line"></span></div><h1>${escape(post.title)}</h1><p class="article-excerpt">${escape(post.excerpt || '')}</p><div class="article-byline">By ${escape(post.author || 'Margin Editors')} &nbsp; · &nbsp; ${escape(formatDate(post.date))} &nbsp; · &nbsp; ${readingTime(post)} min read</div></header>
       <img class="article-cover" src="${escape(post.image || '')}" alt="${escape(post.imageAlt || post.title)}">
-      <div class="article-body">${articleBody(post.body)}</div><div class="article-end">✳</div>
+      <div class="article-body">${articleBody(post.body)}</div>${sourceAttribution}<div class="article-end">✳</div>
       <nav class="article-nav" aria-label="More stories">${previous ? `<a href="?post=${encodeURIComponent(previous.id)}">← Earlier story</a>` : '<span></span>'}${next ? `<a href="?post=${encodeURIComponent(next.id)}">Newer story →</a>` : '<span></span>'}</nav>`;
     content.replaceChildren(article);
   }
