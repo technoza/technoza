@@ -11,7 +11,7 @@ A static editorial blog with a GitHub-backed writing dashboard. The site runs wi
 
 ## Create the GitHub token
 
-Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) for `technoza/technoza` with **Contents: Read and write** permission. The dashboard checks the token’s GitHub account and only unlocks for `technoza`; it then uses the same token to read and publish journal content. The token is saved in this browser’s local storage. Keep the browser profile private; anyone with access to it can retrieve the saved token. The token is never written to the site files or committed to the repository.
+Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) for `technoza/technoza` with **Contents: Read and write** permission. The dashboard checks the token’s personal GitHub account and only unlocks for `shadow111gardens-star`; it then uses the same token to read and publish journal content in the `technoza/technoza` organization repository. The token is saved in this browser’s local storage. Keep the browser profile private; anyone with access to it can retrieve the saved token. The token is never written to the site files or committed to the repository.
 
 ## Write and publish
 
@@ -33,7 +33,7 @@ Create a [fine-grained personal access token](https://github.com/settings/person
 
 - The 24 starter stories in `content/posts.json` are sample editorial content. Replace or remove them from the dashboard whenever you’re ready.
 - Story text and image descriptions are stored in `content/posts.json`; uploaded cover files live in `assets/blog/`.
-- The dashboard checks that its fine-grained GitHub token belongs to `technoza`; the public journal does not expose a dashboard link.
+- The dashboard checks that its fine-grained GitHub token belongs to `shadow111gardens-star`; the public journal does not expose a dashboard link.
 - Browser drafts and connection settings are device-specific. A saved GitHub token is not shared between browsers or devices.
 - The dashboard page is reachable by URL, but its writing interface is gated by an authenticated GitHub account check. The blog homepage does not expose a dashboard link.
 - GitHub Pages requires its source to be set to **GitHub Actions** once in repository settings. This setting cannot be changed by a repository commit alone.

@@ -5,7 +5,9 @@
   const FILE_PATH = 'content/posts.json';
   const CATEGORY_PATH = 'content/categories.json';
   const NEWS_PATH = 'content/news.json';
-  const AUTH_USER = 'technoza';
+  const AUTH_USER = 'shadow111gardens-star';
+  const DEFAULT_REPO_OWNER = 'technoza';
+  const DEFAULT_REPO_NAME = 'technoza';
   const views = [...document.querySelectorAll('.dash-view')];
   const form = document.getElementById('post-form');
   const imageInput = document.getElementById('post-image');
@@ -742,7 +744,7 @@
     try {
       if (!token) throw new Error('For first use on this device, add a fine-grained GitHub token with Contents read and write.');
       await verifyOwner(token);
-      config = { ...(config || {}), owner: AUTH_USER, repo: config?.repo || AUTH_USER, branch: config?.branch || 'main', token };
+      config = { ...(config || {}), owner: config?.owner || DEFAULT_REPO_OWNER, repo: config?.repo || DEFAULT_REPO_NAME, branch: config?.branch || 'main', token };
       localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
       tokenInput.value = '';
       showShell();
